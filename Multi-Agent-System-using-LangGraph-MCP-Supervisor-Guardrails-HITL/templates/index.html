@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OrbitX</title>
+  <meta name="description"
+    content="OrbitX is an autonomous multi-agent travel intelligence system powered by LangGraph, MCP, Supervisor routing, input guardrails, and human-in-the-loop review.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <!-- Main Application Container with Warm Cream-to-Peach Canvas -->
+  <div class="main-canvas">
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <!-- Two-line Heading with Script/Cursive Accent -->
+      <h1 class="hero-heading">
+        Plan Your Next Journey with <span class="script-accent">OrbitX Intelligence</span>
+      </h1>
+
+      <!-- Subtext -->
+      <p class="hero-subtext">
+        Coordinate autonomous agents for flights, stays, live weather &amp; budget analysis in one cohesive workspace
+        with Human In The Loop control.
+      </p>
+    </section>
+
+    <!-- Main Application Interactive Area -->
+    <main class="app-container">
+
+      <!-- Sleek Planner Console (Taskbar removed as requested) -->
+      <section id="plannerCard" class="planner-card">
+        <div class="input-area">
+          <textarea id="userInput"
+            placeholder="Where would you like to travel? Describe your destination, travel dates, budget, vibe, preferred flights, hotels or activities..."></textarea>
+          <button id="sendBtn" onclick="sendMessage()">
+            <span id="btnText">Plan Trip</span>
+            <span id="btnLoader" class="loader hidden"></span>
+          </button>
+        </div>
+
+        <div class="quick-prompts-row">
+          <span class="quick-prompts-label">Try an example:</span>
+          <div class="quick-prompts">
+            <button type="button"
+              onclick="setPrompt('Plan a complete 7 days Japan trip from Montreal, Canada including flights, hotels and sightseeing under $3,500 CAD.')">
+              🌸 Japan 7 Days
+            </button>
+            <button type="button"
+              onclick="setPrompt('Plan a 5 days Dubai trip from Montreal, Canada with flights, hotels and sightseeing.')">
+              🏙️ Dubai Trip
+            </button>
+            <button type="button"
+              onclick="setPrompt('Plan a 7 days Thailand trip from Montreal, Canada with budget hotels and sightseeing.')">
+              🏝️ Thailand Budget
+            </button>
+            <button type="button" onclick="setPrompt('Give me all country flight info.')">
+              ✈️ Global Flights
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Supervisor Agent Workflow Section -->
+      <section id="workflowSection" class="workflow-section hidden">
+        <div class="workflow-header">
+          <div>
+            <span class="eyebrow">Supervisor Agent</span>
+            <h2>Execution Plan</h2>
+          </div>
+          <span id="guardrailBadge" class="guardrail-badge">Guardrail passed</span>
+        </div>
+        <p id="supervisorReasoning" class="supervisor-reasoning"></p>
+        <div id="agentChips" class="agent-chips"></div>
+      </section>
+
+      <!-- AI Travel Plan Result Section -->
+      <section id="resultSection" class="result-section hidden">
+        <div class="result-header">
+          <div>
+            <h2 id="resultTitle">Your AI Travel Plan</h2>
+          </div>
+          <div class="result-actions">
+            <button type="button" class="copy-btn" onclick="copyResult()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+            <button type="button" class="download-btn" onclick="downloadPDF()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="pdfContent" class="pdf-content">
+          <div id="resultBox" class="result-box"></div>
+        </div>
+      </section>
+
+      <!-- Human-in-the-Loop Approval Section -->
+      <section id="approvalSection" class="approval-section hidden">
+        <div class="approval-icon">👤</div>
+        <div class="approval-content">
+          <span class="eyebrow">Human-in-the-Loop</span>
+          <h2>Review the draft itinerary</h2>
+          <p id="approvalRequest">
+            Approve the draft or provide feedback before the final plan is generated.
+          </p>
+
+          <textarea id="approvalFeedback" class="feedback-input"
+            placeholder="Add revision feedback, for example: reduce the hotel cost, change travel dates, or add free days..."></textarea>
+
+          <div class="approval-actions">
+            <button id="approveBtn" type="button" class="approve-btn" onclick="submitApproval(true)">
+              ✓ Approve &amp; Generate Final
+            </button>
+            <button id="reviseBtn" type="button" class="revise-btn" onclick="submitApproval(false)">
+              ✎ Revise Using Feedback
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error Notification Banner -->
+      <section id="errorBox" class="error-box hidden"></section>
+    </main>
+
+
+  </div><!-- /.main-canvas -->
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="modal-overlay hidden" onclick="if(event.target === this) closeRegisterModal()">
+    <div class="modal-card">
+      <button class="modal-close" type="button" onclick="closeRegisterModal()">&times;</button>
+      <div class="modal-header">
+        <span class="modal-badge">Welcome to OrbitX</span>
+        <h3>Get Started with OrbitX</h3>
+        <p>Save tailored multi-agent itineraries, customize MCP integrations, and track your trips seamlessly.</p>
+      </div>
+      <form class="modal-form" onsubmit="event.preventDefault(); handleRegisterSubmit();">
+        <div class="form-group">
+          <label for="regName">Full Name</label>
+          <input type="text" id="regName" placeholder="e.g. Alex Morgan" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email Address</label>
+          <input type="email" id="regEmail" placeholder="alex@example.com" required>
+        </div>
+        <button type="submit" class="modal-submit-btn">Create Free Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastMessage" class="toast-message hidden"></div>
+
+  <!-- External scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="/static/script.js"></script>
+</body>
+
+</html>
